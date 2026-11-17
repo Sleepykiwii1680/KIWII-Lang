@@ -1,7 +1,7 @@
 >> librerias estandar de kiwii
 
-#incluir "cadenas.kiw"
-#incluir "matematica.kiw"
-#incluir "listas.kiw"
-#incluir "formato.kiw"
-#incluir "mapas.kiw"
+#incluir "lib/cadenas.kiw"
+#incluir "lib/matematica.kiw"
+#incluir "lib/listas.kiw"
+#incluir "lib/formato.kiw"
+#incluir "lib/mapas.kiw"
