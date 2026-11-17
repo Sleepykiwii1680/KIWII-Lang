@@ -908,7 +908,75 @@ vacio demointegracion() {
     mostrar("promedio con cero productos : ", vacia);
 }
 
->> seccion 17: seguridad y sandboxing
+>> seccion 17: POO con metodos y contratos
+
+contrato Combatiente {
+    vacio atacar(&saludrival);
+    vacio curar(puntos);
+    texto ficha();
+}
+
+estructura Paladin implementa Combatiente {
+    texto alias = "artorias";
+    ent salud = 120;
+    ent fuerza = 35;
+
+    vacio atacar(&saludrival) {
+        saludrival = saludrival - este.fuerza;
+        si (saludrival < 0) {
+            saludrival = 0;
+        }
+    }
+
+    vacio curar(puntos) {
+        este.salud = este.salud + puntos;
+    }
+
+    texto ficha() {
+        texto info = este.alias + " [hp: ";
+        info = info + este.salud;
+        info = info + " | atk: ";
+        info = info + este.fuerza;
+        info = info + "]";
+        retorna info;
+    }
+}
+
+estructura Clonroto implementa Combatiente {
+    ent salud = 10;
+}
+
+vacio demopoo() {
+    encabezado("18. poo: metodos, este y contratos java");
+
+    ent heroe = nuevo Paladin();
+    texto inicial = heroe.ficha();
+    mostrar("estado inicial     : ", inicial);
+
+    >> llamada directa a metodos del objeto
+    ent vidaorco = 80;
+    heroe.atacar(vidaorco);
+    heroe.curar(25);
+
+    texto despues = heroe.ficha();
+    mostrar("tras curar +25     : ", despues);
+    mostrar("salud del orco     : ", vidaorco);
+
+    >> segundo golpe usando el metodo
+    heroe.atacar(vidaorco);
+    heroe.atacar(vidaorco);
+    mostrar("orco tras 2 golpes : ", vidaorco);
+
+    >> verificacion de contrato incumplido
+    intenta {
+        ent invalido = nuevo Clonroto();
+        salida("  esto nunca debe imprimirse");
+    } excepto {
+        salida("  contrato verificado: Clonroto rechazado por falta de metodos");
+    }
+}
+
+>> seccion 18: seguridad y sandboxing
 
 vacio desbordarpila(nivel) {
     ent sig = nivel + 1;
@@ -916,7 +984,7 @@ vacio desbordarpila(nivel) {
 }
 
 vacio demoseguridad() {
-    encabezado("17. seguridad y sandboxing");
+    encabezado("18. seguridad y sandboxing");
 
     >> filtro contra path traversal
     texto escape1 = leerarchivo("../secreto.txt");
@@ -946,7 +1014,7 @@ vacio demoseguridad() {
     }
 
     >> verificacion de modo aislado
-    texto prueba = leerarchivo("miniprograma.kiw");
+    texto prueba = leerarchivo("pruebas/miniprograma.kiw");
     ent tam = largo(prueba);
     si (tam == 0) {
         salida("  estado sandbox : modo --aislado activo (lectura bloqueada)");
@@ -976,6 +1044,7 @@ vacio principal() {
     demomotor();
     demoentrada();
     demointegracion();
+    demopoo();
     >> desbordarpila(1); >> Elimina los simbolos antes de la funcion para demostrar la proteccion de desbordamiento
     demoseguridad();
     salida("");

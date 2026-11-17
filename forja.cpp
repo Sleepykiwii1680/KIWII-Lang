@@ -118,7 +118,8 @@ vector<Token> tokenizar(const string& codigo) {
                 palabra == "retorna" || palabra == "salida" || palabra == "entrada" ||
                 palabra == "si" || palabra == "sino" || palabra == "demas" || palabra == "y" || palabra == "o" ||
                 palabra == "mientras" || palabra == "para" || palabra == "rompe" || palabra == "salta" ||
-                palabra == "intenta" || palabra == "excepto" || palabra == "estructura" || palabra == "nuevo") {
+                palabra == "intenta" || palabra == "excepto" || palabra == "estructura" || palabra == "nuevo" ||
+                palabra == "contrato" || palabra == "implementa") {
                 listaTokens.push_back({TipoToken::PALABRA_CLAVE, palabra});
             } else if (palabra == "#incluir") {
                 listaTokens.push_back({TipoToken::DIRECTIVA, palabra});
@@ -237,8 +238,16 @@ public:
 class NodoEstructura {
 public:
     string nombre;
+    string contrato;
     vector<NodoAsignacion*> atributos;
-    ~NodoEstructura() { for(auto a : atributos) delete a; }
+    map<string, NodoFuncion*> metodos;
+    ~NodoEstructura() {
+        for (auto a : atributos) delete a;
+        for (auto const& [nom, func] : metodos) {
+            for (auto n : func->bloque) delete n;
+            delete func;
+        }
+    }
 };
 
 class NodoInstancia : public NodoAST {
@@ -251,6 +260,7 @@ class NodoPrograma : public NodoAST {
 public:
     map<string, NodoFuncion*> funciones;
     map<string, NodoEstructura*> estructuras;
+    map<string, vector<string>> contratos;
     ~NodoPrograma() {
         for (auto const& [nom, func] : funciones) {
             for (auto n : func->bloque) delete n;
@@ -431,20 +441,63 @@ NodoPrograma* parsear(const vector<Token>& tokens) {
     NodoPrograma* programa = new NodoPrograma();
     size_t pos = 0;
     while (pos < tokens.size()) {
-        if (tokens[pos].tipo == TipoToken::PALABRA_CLAVE && tokens[pos].valor == "estructura") {
+        if (tokens[pos].tipo == TipoToken::PALABRA_CLAVE && tokens[pos].valor == "contrato") {
             pos++;
-            string nomEstructura = tokens[pos].valor; pos += 2;
-            NodoEstructura* nEst = new NodoEstructura();
-            nEst->nombre = nomEstructura;
+            string nomContrato = tokens[pos].valor; pos += 2;
+            vector<string> firmas;
             while (pos < tokens.size() && tokens[pos].valor != "}") {
-                if (tokens[pos].valor == "ent" || tokens[pos].valor == "texto" || tokens[pos].valor == "dual" || tokens[pos].valor == "dec") {
-                    string t = tokens[pos].valor; pos++;
-                    string n = tokens[pos].valor; pos += 2;
-                    string v = tokens[pos].valor; pos += 2;
-                    nEst->atributos.push_back(new NodoAsignacion(t, n, v, "", ""));
+                if (tokens[pos].valor == "ent" || tokens[pos].valor == "texto" || 
+                    tokens[pos].valor == "vacio" || tokens[pos].valor == "dual" || tokens[pos].valor == "dec") {
+                    pos++;
+                    if (pos < tokens.size()) {
+                        firmas.push_back(tokens[pos].valor);
+                        pos++;
+                    }
+                    while (pos < tokens.size() && tokens[pos].valor != ";" && tokens[pos].valor != "}") pos++;
+                    if (pos < tokens.size() && tokens[pos].valor == ";") pos++;
                 } else { pos++; }
             }
+            if (pos < tokens.size()) pos++;
+            programa->contratos[nomContrato] = firmas;
+        }
+        else if (tokens[pos].tipo == TipoToken::PALABRA_CLAVE && tokens[pos].valor == "estructura") {
             pos++;
+            string nomEstructura = tokens[pos].valor; pos++;
+            NodoEstructura* nEst = new NodoEstructura();
+            nEst->nombre = nomEstructura;
+            if (pos < tokens.size() && tokens[pos].valor == "implementa") {
+                pos++;
+                nEst->contrato = tokens[pos].valor; pos++;
+            }
+            pos++;
+            while (pos < tokens.size() && tokens[pos].valor != "}") {
+                if (tokens[pos].valor == "ent" || tokens[pos].valor == "texto" || 
+                    tokens[pos].valor == "dual" || tokens[pos].valor == "dec" || tokens[pos].valor == "vacio") {
+                    string t = tokens[pos].valor; pos++;
+                    string n = tokens[pos].valor; pos++;
+                    if (pos < tokens.size() && tokens[pos].valor == "(") {
+                        NodoFuncion* met = new NodoFuncion();
+                        met->tipoRetorno = t;
+                        met->nombre = n;
+                        pos++;
+                        while (pos < tokens.size() && tokens[pos].valor != ")") {
+                            if (tokens[pos].tipo == TipoToken::PALABRA_CLAVE) pos++;
+                            if (tokens[pos].tipo == TipoToken::IDENTIFICADOR) {
+                                met->parametros.push_back(tokens[pos].valor);
+                                pos++;
+                            } else pos++;
+                        }
+                        pos++;
+                        met->bloque = parsearBloque(tokens, pos, true);
+                        nEst->metodos[n] = met;
+                    } else {
+                        pos++;
+                        string v = tokens[pos].valor; pos += 2;
+                        nEst->atributos.push_back(new NodoAsignacion(t, n, v, "", ""));
+                    }
+                } else { pos++; }
+            }
+            if (pos < tokens.size()) pos++;
             programa->estructuras[nomEstructura] = nEst;
         }
         else if (tokens[pos].tipo == TipoToken::PALABRA_CLAVE && 
@@ -541,6 +594,17 @@ int ejecutarInstrucciones(const vector<NodoAST*>& instrucciones, map<string, str
         if (auto instancia = dynamic_cast<NodoInstancia*>(nodo)) {
             if (programa->estructuras.count(instancia->nombreEstructura)) {
                 NodoEstructura* estObj = programa->estructuras[instancia->nombreEstructura];
+                if (!estObj->contrato.empty()) {
+                    if (!programa->contratos.count(estObj->contrato)) {
+                        throw runtime_error("El contrato '" + estObj->contrato + "' no existe");
+                    }
+                    for (const string& req : programa->contratos[estObj->contrato]) {
+                        if (!estObj->metodos.count(req)) {
+                            throw runtime_error("Contrato '" + estObj->contrato + "' incumplido en '" + estObj->nombre + "': falta '" + req + "'");
+                        }
+                    }
+                }
+                memoria[instancia->nombreVar + ".__clase__"] = instancia->nombreEstructura;
                 for (auto attr : estObj->atributos) {
                     memoria[instancia->nombreVar + "." + attr->nombre] = resolverToken(attr->valorIzq, memoria);
                 }
@@ -605,6 +669,8 @@ int ejecutarInstrucciones(const vector<NodoAST*>& instrucciones, map<string, str
                 return resolverToken(llamada->argumentos[idx], memoria);
             };
             string resultadoRetorno = "";
+            size_t puntoPos = llamada->nombreFuncion.find('.');
+
             if (llamada->nombreFuncion == "salida") {
                 cout << obtenerVal(0) << endl;
             } 
@@ -626,6 +692,50 @@ int ejecutarInstrucciones(const vector<NodoAST*>& instrucciones, map<string, str
                     resultadoRetorno = "";
                 } else {
                     resultadoRetorno = leerArchivo(obtenerVal(0));
+                }
+            }
+            else if (puntoPos != string::npos) {
+                string objNom = llamada->nombreFuncion.substr(0, puntoPos);
+                string metNom = llamada->nombreFuncion.substr(puntoPos + 1);
+                string claseKey = objNom + ".__clase__";
+                if (memoria.count(claseKey) && programa->estructuras.count(memoria[claseKey])) {
+                    NodoEstructura* estObj = programa->estructuras[memoria[claseKey]];
+                    if (estObj->metodos.count(metNom)) {
+                        if (++profundidadPila > LIMITE_PILA) {
+                            profundidadPila--;
+                            throw runtime_error("Desbordamiento de pila bloqueado (Proteccion DoS)");
+                        }
+                        NodoFuncion* funcObj = estObj->metodos[metNom];
+                        map<string, string> memoriaLocal;
+                        memoriaLocal["este.__clase__"] = estObj->nombre;
+                        for (auto attr : estObj->atributos) {
+                            memoriaLocal["este." + attr->nombre] = memoria[objNom + "." + attr->nombre];
+                        }
+                        vector<string> refOriginal, refLocal;
+                        for (size_t k = 0; k < funcObj->parametros.size() && k < llamada->argumentos.size(); k++) {
+                            string param = funcObj->parametros[k];
+                            string arg = llamada->argumentos[k];
+                            if (param[0] == '&') {
+                                string paramReal = param.substr(1);
+                                memoriaLocal[paramReal] = resolverToken(arg, memoria);
+                                refOriginal.push_back(arg);
+                                refLocal.push_back(paramReal);
+                            } else {
+                                memoriaLocal[param] = resolverToken(arg, memoria);
+                            }
+                        }
+                        ejecutarInstrucciones(funcObj->bloque, memoriaLocal, programa);
+                        profundidadPila--;
+                        for (auto attr : estObj->atributos) {
+                            memoria[objNom + "." + attr->nombre] = memoriaLocal["este." + attr->nombre];
+                        }
+                        for (size_t k = 0; k < refOriginal.size(); k++) {
+                            memoria[refOriginal[k]] = memoriaLocal[refLocal[k]];
+                        }
+                        if (memoriaLocal.count("__retorno__")) {
+                            resultadoRetorno = memoriaLocal["__retorno__"];
+                        }
+                    }
                 }
             }
             else if (programa->funciones.count(llamada->nombreFuncion)) {
@@ -680,8 +790,6 @@ void ejecutar(NodoPrograma* arbol) {
 }
 
 //FALTA AGREGAR PARA LECTURA NETWORKING (...no lo esperes xd)
-
-// PUNTO DE ENTRADA 
 
 // PUNTO DE ENTRADA 
 
