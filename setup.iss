@@ -1,14 +1,15 @@
 [Setup]
 AppName=KIWII Language
-AppVersion=3.2
+AppVersion=3.3
 DefaultDirName={autopf}\Kiwii
-DefaultGroupName=KIWII
-OutputBaseFilename=KiwiiSetup-v3.2
+LicenseFile=LICENSE
+OutputBaseFilename=KiwiiSetup-v3.3
 OutputDir=.
 PrivilegesRequired=lowest
 ChangesEnvironment=yes
 Compression=lzma2
 SolidCompression=yes
+
 
 [Tasks]
 Name: "addpath"; Description: "Agregar kiwii.exe al PATH de Windows (Recomendado)"
@@ -21,6 +22,7 @@ Source: "motor.kiw"; DestDir: "{app}"; Flags: ignoreversion
 Source: "lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs
 Source: "pruebas\*"; DestDir: "{app}\pruebas"; Flags: ignoreversion recursesubdirs
 Source: "kiwii-lang-1.0.0.vsix"; DestDir: "{app}"; Flags: ignoreversion
+Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Registry]
 Root: HKCU; Subkey: "Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}"; Tasks: addpath; Check: NeedsAddPath(ExpandConstant('{app}'))

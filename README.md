@@ -24,5 +24,10 @@ kiwii demokiwii.kiw
 # Ejecución con métricas del compilador (archivos fusionados, tokens y memoria)
 kiwii demokiwii.kiw --debug
 
-# Ejecución en entorno Sandbox (bloquea accesos al sistema de archivos)
-ki
+
+
+## Licencia y Autoría
+
+Copyright (C) 2026 Bruno Alessandro Espinoza Carrasco (Sleepykiwii1680).
+
+Este lenguaje y su motor son software libre: puedes redistribuirlos y/o modificarlos bajo los términos de la **GNU General Public License v3.0 (GPLv3)** publicada por la Free Software Foundation. Consulta el archivo `LICENSE` para más detalles.
