@@ -1,5 +1,0 @@
->> libreria de compilacion y metaprogramacion
-
-#incluir "estandar.kiw"
-#incluir "lib/lexer.kiw"
-#incluir "lib/evaluador.kiw"
