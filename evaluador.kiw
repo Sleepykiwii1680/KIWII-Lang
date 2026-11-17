@@ -88,8 +88,16 @@ ent saltarbloque(valores, pos, total) {
 
 vacio ejecutartokens(tipos, valores, total, &clavesram, &valoresram, &totalram) {
     ent pos = 0;
+    ent pasos = 0;
+    ent limite = 5000;
 
     mientras (pos < total) {
+        pasos = pasos + 1;
+        si (pasos > limite) {
+            salida("[sandbox vm]: limite de instrucciones excedido (dos bloqueado)");
+            rompe;
+        }
+
         texto t = obtener(tipos, pos);
         texto v = obtener(valores, pos);
 

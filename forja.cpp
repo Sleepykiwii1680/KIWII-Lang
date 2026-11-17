@@ -24,9 +24,26 @@ struct Token {
     string valor; 
 };
 
+bool modoAislado = false;
+int profundidadPila = 0;
+const int LIMITE_CICLOS = 100000;
+const int LIMITE_PILA = 256;
+
 // UTILIDAD DE LECTURA Y PREPROCESADOR (#incluir) 
 
+bool esRutaSegura(const string& ruta) {
+    if (ruta.empty()) return false;
+    if (ruta.find("..") != string::npos) return false;
+    if (ruta.find(':') != string::npos) return false;
+    if (ruta[0] == '/' || ruta[0] == '\\') return false;
+    return true;
+}
+
 string leerArchivo(const string& ruta) {
+    if (!esRutaSegura(ruta)) {
+        cerr << "[Seguridad Kernel]: Acceso bloqueado por Path Traversal en '" << ruta << "'" << endl;
+        return "";
+    }
     ifstream archivo(ruta);
     if (!archivo.is_open()) {
         cerr << "[Error Kernel]: No se encontro el archivo '" << ruta << "'" << endl;
@@ -551,24 +568,30 @@ int ejecutarInstrucciones(const vector<NodoAST*>& instrucciones, map<string, str
             }
         }
         else if (auto nodoMientras = dynamic_cast<NodoMientras*>(nodo)) {
+            int ciclos = 0;
             while (evaluarLogica(nodoMientras->valorIzq, nodoMientras->operadorLogico, nodoMientras->valorDer, memoria)) {
+                if (++ciclos > LIMITE_CICLOS) throw runtime_error("Limite de iteraciones excedido (Proteccion DoS)");
                 int est = ejecutarInstrucciones(nodoMientras->bloque, memoria, programa);
                 if (est == 1) break; if (est == 2) continue; if (est == 3) return 3;
             }
         }
         else if (auto nodoPara = dynamic_cast<NodoPara*>(nodo)) {
+            int ciclos = 0;
             vector<NodoAST*> ini = {nodoPara->inicializacion}; ejecutarInstrucciones(ini, memoria, programa);
             while (evaluarLogica(nodoPara->valorIzq, nodoPara->operadorLogico, nodoPara->valorDer, memoria)) {
+                if (++ciclos > LIMITE_CICLOS) throw runtime_error("Limite de iteraciones excedido (Proteccion DoS)");
                 int est = ejecutarInstrucciones(nodoPara->bloque, memoria, programa);
                 if (est == 1) break; if (est == 3) return 3;
                 vector<NodoAST*> act = {nodoPara->actualizacion}; ejecutarInstrucciones(act, memoria, programa);
             }
         }
         else if (auto nodoInt = dynamic_cast<NodoIntenta*>(nodo)) {
+            int pilaBase = profundidadPila;
             try {
                 int est = ejecutarInstrucciones(nodoInt->bloqueIntenta, memoria, programa);
                 if (est != 0) return est;
             } catch (...) {
+                profundidadPila = pilaBase;
                 if (!nodoInt->bloqueExcepto.empty()) {
                     int est = ejecutarInstrucciones(nodoInt->bloqueExcepto, memoria, programa);
                     if (est != 0) return est;
@@ -598,9 +621,18 @@ int ejecutarInstrucciones(const vector<NodoAST*>& instrucciones, map<string, str
                 resultadoRetorno = txt.empty() ? "0" : to_string((int)(unsigned char)txt[0]);
             }
             else if (llamada->nombreFuncion == "leerarchivo") {
-                resultadoRetorno = leerArchivo(obtenerVal(0));
+                if (modoAislado) {
+                    cerr << "[Sandbox KIWII]: Lectura de archivos bloqueada en modo --aislado" << endl;
+                    resultadoRetorno = "";
+                } else {
+                    resultadoRetorno = leerArchivo(obtenerVal(0));
+                }
             }
             else if (programa->funciones.count(llamada->nombreFuncion)) {
+                if (++profundidadPila > LIMITE_PILA) {
+                    profundidadPila--;
+                    throw runtime_error("Desbordamiento de pila bloqueado (Proteccion DoS)");
+                }
                 NodoFuncion* funcObj = programa->funciones[llamada->nombreFuncion];
                 map<string, string> memoriaLocal; 
                 
@@ -620,6 +652,7 @@ int ejecutarInstrucciones(const vector<NodoAST*>& instrucciones, map<string, str
                     }
                 }
                 ejecutarInstrucciones(funcObj->bloque, memoriaLocal, programa);
+                profundidadPila--;
                 for (size_t k = 0; k < refOriginal.size(); k++) {
                     memoria[refOriginal[k]] = memoriaLocal[refLocal[k]];
                 }
@@ -652,11 +685,16 @@ void ejecutar(NodoPrograma* arbol) {
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        cout << "KIWII Kernel v1.0 | Uso: kiwii <archivo.kiw> [--debug]" << endl;
+        cout << "KIWII Kernel v1.5 | Uso: kiwii <archivo.kiw> [--debug] [--aislado]" << endl;
         return 1;
     }
     string rutaArchivo = argv[1];
-    bool modoDebug = (argc >= 3 && string(argv[2]) == "--debug");
+    bool modoDebug = false;
+    for (int i = 2; i < argc; i++) {
+        string arg = argv[i];
+        if (arg == "--debug") modoDebug = true;
+        if (arg == "--aislado") modoAislado = true;
+    }
     string codigoBruto = leerArchivo(rutaArchivo);
     if (codigoBruto.empty()) return 1;
     set<string> archivosIncluidos = {rutaArchivo};
@@ -668,6 +706,7 @@ int main(int argc, char* argv[]) {
         cout << " Tokens generados: " << tokens.size() << endl;
         cout << " Funciones en memoria: " << arbol->funciones.size() << endl;
         cout << " Estructuras en memoria: " << arbol->estructuras.size() << endl;
+        cout << " Modo aislado (Sandbox): " << (modoAislado ? "ACTIVO" : "INACTIVO") << endl;
         cout << "================ SALIDA ================" << endl;
     }
     ejecutar(arbol);

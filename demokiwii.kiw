@@ -908,6 +908,54 @@ vacio demointegracion() {
     mostrar("promedio con cero productos : ", vacia);
 }
 
+>> seccion 17: seguridad y sandboxing
+
+vacio desbordarpila(nivel) {
+    ent sig = nivel + 1;
+    desbordarpila(sig);
+}
+
+vacio demoseguridad() {
+    encabezado("17. seguridad y sandboxing");
+
+    >> filtro contra path traversal
+    texto escape1 = leerarchivo("../secreto.txt");
+    texto escape2 = leerarchivo("C:/Windows/win.ini");
+    texto escape3 = leerarchivo("/etc/passwd");
+    enmarcar("bloqueo ../secreto.txt   : ", escape1);
+    enmarcar("bloqueo C:/Windows       : ", escape2);
+    enmarcar("bloqueo /etc/passwd      : ", escape3);
+
+    >> proteccion contra bucle infinito
+    intenta {
+        ent contador = 0;
+        mientras (1 == 1) {
+            contador = contador + 1;
+        }
+        salida("  esto nunca debe imprimirse");
+    } excepto {
+        salida("  ataque de bucle infinito neutralizado (cwe-835)");
+    }
+
+    >> proteccion contra desbordamiento de pila
+    intenta {
+        desbordarpila(1);
+        salida("  esto nunca debe imprimirse");
+    } excepto {
+        salida("  desbordamiento de pila recursiva neutralizado (cwe-674)");
+    }
+
+    >> verificacion de modo aislado
+    texto prueba = leerarchivo("miniprograma.kiw");
+    ent tam = largo(prueba);
+    si (tam == 0) {
+        salida("  estado sandbox : modo --aislado activo (lectura bloqueada)");
+    } demas {
+        salida("  estado sandbox : modo normal (lectura local permitida)");
+    }
+}
+
+
 >> programa principal
 
 vacio principal() {
@@ -928,6 +976,8 @@ vacio principal() {
     demomotor();
     demoentrada();
     demointegracion();
+    >> desbordarpila(); >> Elimina los simbolos antes de la funcion para demostrar la proteccion de desbordamiento
+    demoseguridad();
     salida("");
     caja("fin de la demostracion", 56);
     salida("  ejecuta con --debug para ver tokens, funciones y estructuras");
