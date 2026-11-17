@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <cstdlib>
 using namespace std;
 // DICCIONARIO Y ESTRUCTURA DE TOKENS
 
@@ -28,6 +29,7 @@ bool modoAislado = false;
 int profundidadPila = 0;
 const int LIMITE_CICLOS = 100000;
 const int LIMITE_PILA = 256;
+string rutaKiwii = "";
 
 // UTILIDAD DE LECTURA Y PREPROCESADOR (#incluir) 
 
@@ -45,6 +47,19 @@ string leerArchivo(const string& ruta) {
         return "";
     }
     ifstream archivo(ruta);
+    if (!archivo.is_open() && !rutaKiwii.empty()) {
+        archivo.open(rutaKiwii + ruta);
+    }
+    if (!archivo.is_open() && getenv("PATH")) {
+        stringstream sp(getenv("PATH"));
+        string dir;
+        while (getline(sp, dir, ';')) {
+            if (!dir.empty() && ifstream(dir + "/kiwii.exe").good()) {
+                archivo.open(dir + "/" + ruta);
+                if (archivo.is_open()) break;
+            }
+        }
+    }
     if (!archivo.is_open()) {
         cerr << "[Error Kernel]: No se encontro el archivo '" << ruta << "'" << endl;
         return "";
@@ -798,6 +813,9 @@ int main(int argc, char* argv[]) {
         cout << "KIWII Kernel v1.5 | Uso: kiwii <archivo.kiw> [--debug] [--aislado]" << endl;
         return 1;
     }
+    string bin = argv[0];
+    size_t barra = bin.find_last_of("/\\");
+    if (barra != string::npos) rutaKiwii = bin.substr(0, barra + 1);
     string rutaArchivo = argv[1];
     bool modoDebug = false;
     for (int i = 2; i < argc; i++) {
