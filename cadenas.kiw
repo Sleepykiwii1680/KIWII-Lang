@@ -1,14 +1,160 @@
->> Libreria estandar de KIWII: cadenas.kiw
+>> manipulacion de textos y caracteres
 
->> Funcion escrita en puro KIWII que recorre un texto letra por letra
 vacio deletrear(palabra) {
     ent tam = largo(palabra);
     para (ent i = 0; i < tam; i = i + 1) {
-        texto l = letra_en(palabra, i);
-        texto cod = codigo_ascii(l);
-        texto linea = "Letra: " + l;
-        linea = linea + " | ASCII: ";
-        linea = linea + cod;
-        salida(linea);
+        texto l = letraen(palabra, i);
+        texto cod = codigoascii(l);
+        texto fila = "Letra: " + l;
+        fila = fila + " | ASCII: ";
+        fila = fila + cod;
+        salida(fila);
     }
 }
+
+ent esespacio(c) {
+    ent cod = codigoascii(c);
+    si (cod == 32) { retorna 1; }
+    si (cod == 10) { retorna 1; }
+    si (cod == 13) { retorna 1; }
+    si (cod == 9) { retorna 1; }
+    retorna 0;
+}
+
+ent esdigito(c) {
+    ent cod = codigoascii(c);
+    si (cod >= 48) {
+        si (cod <= 57) {
+            retorna 1;
+        }
+    }
+    retorna 0;
+}
+
+ent esletra(c) {
+    ent cod = codigoascii(c);
+    si (cod >= 65) {
+        si (cod <= 90) {
+            retorna 1;
+        }
+    }
+    si (cod >= 97) {
+        si (cod <= 122) {
+            retorna 1;
+        }
+    }
+    retorna 0;
+}
+
+texto subcadena(txt, inicio, fin) {
+    ent tam = largo(txt);
+    texto res = "";
+    si (inicio < 0) { inicio = 0; }
+    si (fin > tam) { fin = tam; }
+
+    para (ent i = inicio; i < fin; i = i + 1) {
+        texto c = letraen(txt, i);
+        res = res + c;
+    }
+    retorna res;
+}
+
+ent buscarletra(txt, buscada) {
+    ent tam = largo(txt);
+    para (ent i = 0; i < tam; i = i + 1) {
+        texto c = letraen(txt, i);
+        si (c == buscada) {
+            retorna i;
+        }
+    }
+    ent noencontrado = 0 - 1;
+    retorna noencontrado;
+}
+
+ent empezacon(txt, prefijo) {
+    ent tamtxt = largo(txt);
+    ent tampref = largo(prefijo);
+    si (tampref > tamtxt) {
+        retorna 0;
+    }
+    texto recorte = subcadena(txt, 0, tampref);
+    si (recorte == prefijo) {
+        retorna 1;
+    }
+    retorna 0;
+}
+
+ent contiene(txt, sub) {
+    ent tamtxt = largo(txt);
+    ent tamsub = largo(sub);
+    si (tamsub > tamtxt) {
+        retorna 0;
+    }
+    ent limite = tamtxt - tamsub;
+    limite = limite + 1;
+
+    para (ent i = 0; i < limite; i = i + 1) {
+        ent fin = i + tamsub;
+        texto trozo = subcadena(txt, i, fin);
+        si (trozo == sub) {
+            retorna 1;
+        }
+    }
+    retorna 0;
+}
+
+texto reemplazar(txt, viejo, nuevochar) {
+    ent tam = largo(txt);
+    texto res = "";
+    para (ent i = 0; i < tam; i = i + 1) {
+        texto c = letraen(txt, i);
+        si (c == viejo) {
+            res = res + nuevochar;
+        } demas {
+            res = res + c;
+        }
+    }
+    retorna res;
+}
+
+texto invertir(txt) {
+    ent tam = largo(txt);
+    texto res = "";
+    para (ent i = 0; i < tam; i = i + 1) {
+        ent pos = tam - 1;
+        pos = pos - i;
+        texto c = letraen(txt, pos);
+        res = res + c;
+    }
+    retorna res;
+}
+
+texto limpiar(txt) {
+    ent tam = largo(txt);
+    ent ini = 0;
+    ent fin = tam;
+
+    mientras (ini < tam) {
+        texto c = letraen(txt, ini);
+        ent esp = esespacio(c);
+        si (esp == 1) {
+            ini = ini + 1;
+        } demas {
+            rompe;
+        }
+    }
+
+    mientras (fin > ini) {
+        ent pos = fin - 1;
+        texto c = letraen(txt, pos);
+        ent esp = esespacio(c);
+        si (esp == 1) {
+            fin = fin - 1;
+        } demas {
+            rompe;
+        }
+    }
+
+    texto limpio = subcadena(txt, ini, fin);
+    retorna limpio;
+}

@@ -1,12 +1,14 @@
-#incluir <consola>
-#incluir "cadenas.kiw"
+#incluir "estandar.kiw"
 
 ent principal() {
-    salida("--- Iniciando... ---");
-    
-    texto secreto = "KIWI";
-    salida("Analizando palabra con con la libreria cadenas.kiw:");
-    deletrear(secreto);
-    
+    caja("REPORTE DE INVENTARIO KIWII", 46);
+
+    fila_tabla("ITEM", "TIPO", "PODER", 12);
+    linea("-", 46);
+    fila_tabla("Espada", "Arma", "150", 12);
+    fila_tabla("Escudo", "Defensa", "80", 12);
+    fila_tabla("Pocion", "Magia", "300", 12);
+    linea("-", 46);
+
     retorna 0;
 }

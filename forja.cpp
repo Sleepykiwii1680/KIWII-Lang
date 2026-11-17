@@ -91,7 +91,7 @@ vector<Token> tokenizar(const string& codigo) {
 
         if (isalpha(actual) || actual == '#' || actual == '&') {
             string palabra = "";
-            while (i < codigo.length() && (isalnum(codigo[i]) || codigo[i] == '_' || 
+            while (i < codigo.length() && (isalnum(codigo[i]) || 
                    codigo[i] == '#' || codigo[i] == '.' || codigo[i] == '&')) {
                 palabra += codigo[i];
                 i++;
@@ -112,7 +112,7 @@ vector<Token> tokenizar(const string& codigo) {
         }
 
         if (actual == '"') {
-            string texto = "";
+            string texto = "\x01";
             i++;
             while (i < codigo.length() && codigo[i] != '"') {
                 texto += codigo[i]; i++;
@@ -463,9 +463,20 @@ bool esNumero(const string& str) {
     return true;
 }
 
-string evaluarMatematica(string v1, string op, string v2, map<string, string>& memoria) {
-    string val1 = memoria.count(v1) ? memoria[v1] : v1;
-    string val2 = memoria.count(v2) ? memoria[v2] : v2;
+string resolverToken(const string& tok, map<string, string>& memoria) {
+    if (!tok.empty() && tok[0] == '\x01') return tok.substr(1);
+    return memoria.count(tok) ? memoria[tok] : tok;
+}
+
+string evaluarMatematica(string v1, string op, string v2, map<string, string>& memoria, string tipoDest = "") {
+    bool lit1 = (!v1.empty() && v1[0] == '\x01');
+    bool lit2 = (!v2.empty() && v2[0] == '\x01');
+    string val1 = resolverToken(v1, memoria);
+    string val2 = resolverToken(v2, memoria);
+
+    if (op == "+" && (lit1 || lit2 || tipoDest == "texto")) {
+        return val1 + val2;
+    }
     if (op == "*" && (!esNumero(val1) || !esNumero(val2))) {
         string texto = !esNumero(val1) ? val1 : val2;
         int veces = stoi(!esNumero(val1) ? val2 : val1);
@@ -489,8 +500,8 @@ string evaluarMatematica(string v1, string op, string v2, map<string, string>& m
     return val1; 
 }
 bool evaluarLogica(string v1, string op, string v2, map<string, string>& memoria) {
-    string val1 = memoria.count(v1) ? memoria[v1] : v1;
-    string val2 = memoria.count(v2) ? memoria[v2] : v2;
+    string val1 = resolverToken(v1, memoria);
+    string val2 = resolverToken(v2, memoria);
 
     if (esNumero(val1) && esNumero(val2)) {
         int n1 = stoi(val1); int n2 = stoi(val2);
@@ -514,7 +525,7 @@ int ejecutarInstrucciones(const vector<NodoAST*>& instrucciones, map<string, str
             if (programa->estructuras.count(instancia->nombreEstructura)) {
                 NodoEstructura* estObj = programa->estructuras[instancia->nombreEstructura];
                 for (auto attr : estObj->atributos) {
-                    memoria[instancia->nombreVar + "." + attr->nombre] = attr->valorIzq;
+                    memoria[instancia->nombreVar + "." + attr->nombre] = resolverToken(attr->valorIzq, memoria);
                 }
             } else {
                 cerr << "Error KIWII: La estructura '" << instancia->nombreEstructura << "' no existe." << endl;
@@ -522,10 +533,9 @@ int ejecutarInstrucciones(const vector<NodoAST*>& instrucciones, map<string, str
         }
         else if (auto asignacion = dynamic_cast<NodoAsignacion*>(nodo)) {
             if (asignacion->operador == "") {
-                string val = asignacion->valorIzq;
-                memoria[asignacion->nombre] = memoria.count(val) ? memoria[val] : val;
+                memoria[asignacion->nombre] = resolverToken(asignacion->valorIzq, memoria);
             }
-            else memoria[asignacion->nombre] = evaluarMatematica(asignacion->valorIzq, asignacion->operador, asignacion->valorDer, memoria);
+            else memoria[asignacion->nombre] = evaluarMatematica(asignacion->valorIzq, asignacion->operador, asignacion->valorDer, memoria, asignacion->tipoVariable);
             
             if (asignacion->nombre == "__retorno__") return 3;
         }
@@ -569,8 +579,7 @@ int ejecutarInstrucciones(const vector<NodoAST*>& instrucciones, map<string, str
 
             auto obtenerVal = [&](size_t idx) -> string {
                 if (idx >= llamada->argumentos.size()) return "";
-                string a = llamada->argumentos[idx];
-                return memoria.count(a) ? memoria[a] : a;
+                return resolverToken(llamada->argumentos[idx], memoria);
             };
             string resultadoRetorno = "";
             if (llamada->nombreFuncion == "salida") {
@@ -579,16 +588,16 @@ int ejecutarInstrucciones(const vector<NodoAST*>& instrucciones, map<string, str
             else if (llamada->nombreFuncion == "largo") {
                 resultadoRetorno = to_string(obtenerVal(0).length());
             }
-            else if (llamada->nombreFuncion == "letra_en") {
+            else if (llamada->nombreFuncion == "letraen") {
                 string txt = obtenerVal(0);
                 int idx = stoi(obtenerVal(1));
                 if (idx >= 0 && idx < (int)txt.length()) resultadoRetorno = string(1, txt[idx]);
             }
-            else if (llamada->nombreFuncion == "codigo_ascii") {
+            else if (llamada->nombreFuncion == "codigoascii") {
                 string txt = obtenerVal(0);
                 resultadoRetorno = txt.empty() ? "0" : to_string((int)(unsigned char)txt[0]);
             }
-            else if (llamada->nombreFuncion == "leer_archivo") {
+            else if (llamada->nombreFuncion == "leerarchivo") {
                 resultadoRetorno = leerArchivo(obtenerVal(0));
             }
             else if (programa->funciones.count(llamada->nombreFuncion)) {
@@ -603,11 +612,11 @@ int ejecutarInstrucciones(const vector<NodoAST*>& instrucciones, map<string, str
                     
                     if (param[0] == '&') {
                         string paramReal = param.substr(1); 
-                        memoriaLocal[paramReal] = memoria.count(arg) ? memoria[arg] : arg;
+                        memoriaLocal[paramReal] = resolverToken(arg, memoria);
                         refOriginal.push_back(arg);
                         refLocal.push_back(paramReal);
                     } else {
-                        memoriaLocal[param] = memoria.count(arg) ? memoria[arg] : arg;
+                        memoriaLocal[param] = resolverToken(arg, memoria);
                     }
                 }
                 ejecutarInstrucciones(funcObj->bloque, memoriaLocal, programa);
