@@ -1,0 +1,1053 @@
+>> librerias
+
+#incluir "motor.kiw"
+#incluir "estandar.kiw"
+
+>> estructuras
+
+estructura Jugador {
+    texto nombre = "anonimo";
+    ent vida = 100;
+    dual vivo = 1;
+    dec puntaje = 0;
+}
+
+estructura Punto {
+    ent px = 0;
+    ent py = 0;
+}
+
+>> utilidades de salida
+
+vacio encabezado(titulo) {
+    salida("");
+    linea("=", 56);
+    texto centrado = centrar(titulo, 56);
+    salida(centrado);
+    linea("=", 56);
+}
+
+vacio mostrar(etiqueta, valor) {
+    texto fila = "  " + etiqueta;
+    fila = fila + valor;
+    salida(fila);
+}
+
+vacio enmarcar(etiqueta, valor) {
+    texto fila = "  " + etiqueta;
+    fila = fila + "[";
+    fila = fila + valor;
+    fila = fila + "]";
+    salida(fila);
+}
+
+>> funciones de apoyo
+
+vacio comparar(izq, der) {
+    texto fila = "  " + izq;
+    fila = fila + " vs ";
+    fila = fila + der;
+    fila = fila + "  ->  ";
+    si (izq == der) { fila = fila + "== "; }
+    si (izq != der) { fila = fila + "!= "; }
+    si (izq < der) { fila = fila + "< "; }
+    si (izq > der) { fila = fila + "> "; }
+    si (izq <= der) { fila = fila + "<= "; }
+    si (izq >= der) { fila = fila + ">= "; }
+    salida(fila);
+}
+
+texto clasificar(n) {
+    si (n < 0) {
+        retorna "negativo";
+    } demas {
+        si (n == 0) {
+            retorna "cero";
+        } demas {
+            si (n < 10) {
+                retorna "pequeno";
+            } demas {
+                retorna "grande";
+            }
+        }
+    }
+}
+
+ent factorial(n) {
+    si (n <= 1) {
+        retorna 1;
+    }
+    ent previo = n - 1;
+    ent parcial = factorial(previo);
+    ent resultado = n * parcial;
+    retorna resultado;
+}
+
+ent fibonacci(n) {
+    si (n < 2) {
+        retorna n;
+    }
+    ent uno = n - 1;
+    ent dos = n - 2;
+    ent fa = fibonacci(uno);
+    ent fb = fibonacci(dos);
+    ent suma = fa + fb;
+    retorna suma;
+}
+
+ent mcd(numa, numb) {
+    mientras (numb != 0) {
+        ent resto = mod(numa, numb);
+        numa = numb;
+        numb = resto;
+    }
+    retorna numa;
+}
+
+dual esprimo(n) {
+    si (n < 2) {
+        retorna 0;
+    }
+    para (ent d = 2; d < n; d = d + 1) {
+        ent resto = mod(n, d);
+        si (resto == 0) {
+            retorna 0;
+        }
+    }
+    retorna 1;
+}
+
+ent hanoi(discos) {
+    si (discos == 0) {
+        retorna 0;
+    }
+    ent menos = discos - 1;
+    ent previos = hanoi(menos);
+    ent doble = previos * 2;
+    ent total = doble + 1;
+    retorna total;
+}
+
+dec mitad(valor) {
+    dec res = valor / 2;
+    retorna res;
+}
+
+texto saludar(persona) {
+    texto mensaje = "  hola, " + persona;
+    retorna mensaje;
+}
+
+vacio avisar(cantidad) {
+    si (cantidad <= 0) {
+        salida("  sin avisos pendientes");
+        retorna 0;
+    }
+    texto fila = "  avisos pendientes: ";
+    fila = fila + cantidad;
+    salida(fila);
+}
+
+vacio intercambiar(&uno, &dos) {
+    ent temporal = uno;
+    uno = dos;
+    dos = temporal;
+}
+
+vacio ordenar3(&p1, &p2, &p3) {
+    si (p1 > p2) {
+        intercambiar(p1, p2);
+    }
+    si (p2 > p3) {
+        intercambiar(p2, p3);
+    }
+    si (p1 > p2) {
+        intercambiar(p1, p2);
+    }
+}
+
+vacio dividirpar(dividendo, divisor, &cociente, &resto) {
+    cociente = dividendo / divisor;
+    ent sobra = mod(dividendo, divisor);
+    resto = sobra;
+}
+
+vacio incrementar(&contador, paso) {
+    contador = contador + paso;
+}
+
+vacio envolver(&cadena, marca) {
+    texto nueva = marca + cadena;
+    nueva = nueva + marca;
+    cadena = nueva;
+}
+
+vacio danar(&salud, cantidad) {
+    salud = salud - cantidad;
+    si (salud < 0) {
+        salud = 0;
+    }
+}
+
+vacio rebajar(&importe, porcentaje) {
+    ent quita = importe * porcentaje;
+    quita = quita / 100;
+    importe = importe - quita;
+}
+
+ent distancia(xa, ya, xb, yb) {
+    ent dx = xa - xb;
+    ent dy = ya - yb;
+    ent ax = abs(dx);
+    ent ay = abs(dy);
+    ent total = ax + ay;
+    retorna total;
+}
+
+texto dividirseguro(dividendo, divisor) {
+    texto res = "";
+    intenta {
+        ent q = dividendo / divisor;
+        res = "" + q;
+    } excepto {
+        res = "error de division";
+    }
+    retorna res;
+}
+
+dec promedio(total, cantidad) {
+    dec res = 0;
+    intenta {
+        res = total / cantidad;
+    } excepto {
+        res = 0;
+    }
+    retorna res;
+}
+
+>> seccion 1: tipos
+
+vacio demotipos() {
+    encabezado("1. tipos de datos y variables");
+    ent entero = 2026;
+    texto cadena = "hola kiwii";
+    dual activo = 1;
+    dec medida = 75;
+    ent negativo = 0 - 48;
+    mostrar("ent       : ", entero);
+    mostrar("texto     : ", cadena);
+    mostrar("dual      : ", activo);
+    mostrar("dec       : ", medida);
+    mostrar("negativo  : ", negativo);
+
+    >> copias y reasignacion
+    texto copia = cadena;
+    ent espejo = entero;
+    entero = 7;
+    cadena = "nuevo valor";
+    mostrar("copia de texto   : ", copia);
+    mostrar("copia de ent     : ", espejo);
+    mostrar("ent reasignado   : ", entero);
+    mostrar("texto reasignado : ", cadena);
+
+    >> nombres con # en el identificador
+    ent dato#1 = 10;
+    ent dato#2 = 20;
+    ent dato#3 = dato#1 + dato#2;
+    mostrar("dato#1 + dato#2 : ", dato#3);
+
+    >> valores dual
+    si (activo == 1) {
+        salida("  el dual activo vale 1");
+    } demas {
+        salida("  el dual activo vale 0");
+    }
+}
+
+>> seccion 2: operadores
+
+vacio demooperadores() {
+    encabezado("2. operadores");
+    ent num1 = 17;
+    ent num2 = 5;
+    ent suma = num1 + num2;
+    ent resta = num1 - num2;
+    ent producto = num1 * num2;
+    ent cociente = num1 / num2;
+    mostrar("17 + 5 = ", suma);
+    mostrar("17 - 5 = ", resta);
+    mostrar("17 * 5 = ", producto);
+    mostrar("17 / 5 = ", cociente);
+
+    >> operadores sobre texto
+    texto union = "ki" + "wii";
+    texto eco = "ja" * 3;
+    texto marco = "=-" * 8;
+    mostrar("unir    : ", union);
+    mostrar("repetir : ", eco);
+    mostrar("patron  : ", marco);
+
+    >> comparaciones
+    comparar(3, 5);
+    comparar(5, 5);
+    comparar(9, 2);
+    ent negpar = 0 - 4;
+    comparar(negpar, 3);
+    comparar("kiwii", "kiwii");
+    comparar("kiwii", "pera");
+}
+
+>> seccion 3: control de flujo
+
+vacio democontrol() {
+    encabezado("3. control de flujo");
+
+    >> si y demas anidados
+    ent bajo = 0 - 5;
+    ent nulo = 0;
+    ent medio = 7;
+    ent alto = 90;
+    texto clase1 = clasificar(bajo);
+    texto clase2 = clasificar(nulo);
+    texto clase3 = clasificar(medio);
+    texto clase4 = clasificar(alto);
+    mostrar("-5 es : ", clase1);
+    mostrar("0 es  : ", clase2);
+    mostrar("7 es  : ", clase3);
+    mostrar("90 es : ", clase4);
+
+    >> para
+    para (ent i = 1; i <= 5; i = i + 1) {
+        ent cuadrado = i * i;
+        texto fila = "  " + i;
+        fila = fila + " al cuadrado = ";
+        fila = fila + cuadrado;
+        salida(fila);
+    }
+
+    >> mientras
+    ent valor = 100;
+    ent pasos = 0;
+    mientras (valor > 1) {
+        valor = valor / 2;
+        pasos = pasos + 1;
+    }
+    mostrar("mitades de 100 hasta llegar a 1   : ", pasos);
+
+    >> rompe
+    ent hallado = 0;
+    para (ent k = 1; k <= 30; k = k + 1) {
+        ent resto = mod(k, 7);
+        si (resto == 0) {
+            si (k > 10) {
+                hallado = k;
+                rompe;
+            }
+        }
+    }
+    mostrar("primer multiplo de 7 mayor que 10 : ", hallado);
+
+    >> salta
+    ent impares = 0;
+    para (ent n = 1; n <= 9; n = n + 1) {
+        ent paridad = mod(n, 2);
+        si (paridad == 0) {
+            salta;
+        }
+        impares = impares + n;
+    }
+    mostrar("suma de impares del 1 al 9        : ", impares);
+
+    ent cuenta = 0;
+    ent multiplos = 0;
+    mientras (cuenta < 12) {
+        cuenta = cuenta + 1;
+        ent residuo = mod(cuenta, 4);
+        si (residuo != 0) {
+            salta;
+        }
+        multiplos = multiplos + cuenta;
+    }
+    mostrar("suma de multiplos de 4 hasta 12   : ", multiplos);
+
+    >> ciclos anidados
+    para (ent nivel = 1; nivel <= 4; nivel = nivel + 1) {
+        texto estrellas = "*" * nivel;
+        texto sangria = "    " + estrellas;
+        salida(sangria);
+    }
+    para (ent fa = 1; fa <= 3; fa = fa + 1) {
+        texto tabla = " ";
+        para (ent cb = 1; cb <= 5; cb = cb + 1) {
+            ent prod = fa * cb;
+            texto celda = rellenarizq(prod, 4);
+            tabla = tabla + celda;
+        }
+        salida(tabla);
+    }
+}
+
+>> seccion 4: funciones y recursion
+
+vacio demofunciones() {
+    encabezado("4. funciones y recursion");
+    ent fact6 = factorial(6);
+    ent fib10 = fibonacci(10);
+    ent divcomun = mcd(84, 36);
+    ent movs = hanoi(5);
+    mostrar("factorial de 6        : ", fact6);
+    mostrar("fibonacci de 10       : ", fib10);
+    mostrar("mcd de 84 y 36        : ", divcomun);
+    mostrar("movimientos hanoi (5) : ", movs);
+
+    >> funciones dual y dec
+    dual primo7 = esprimo(7);
+    dual primo9 = esprimo(9);
+    dec media = mitad(90);
+    mostrar("7 es primo  : ", primo7);
+    mostrar("9 es primo  : ", primo9);
+    mostrar("mitad de 90 : ", media);
+
+    >> funciones que devuelven texto
+    texto hola = saludar("kiwii");
+    salida(hola);
+
+    >> funciones vacio
+    avisar(0);
+    avisar(3);
+
+    >> funciones que llaman a otras funciones
+    texto primos = "  primos hasta 30:";
+    para (ent c = 2; c <= 30; c = c + 1) {
+        dual esp = esprimo(c);
+        si (esp == 1) {
+            primos = primos + " ";
+            primos = primos + c;
+        }
+    }
+    salida(primos);
+}
+
+>> seccion 5: paso por referencia
+
+vacio demoreferencias() {
+    encabezado("5. paso por referencia");
+    ent izq = 3;
+    ent der = 9;
+    intercambiar(izq, der);
+    mostrar("izq tras intercambiar          : ", izq);
+    mostrar("der tras intercambiar          : ", der);
+
+    ent ra = 8;
+    ent rb = 2;
+    ent rc = 5;
+    ordenar3(ra, rb, rc);
+    texto orden = "  tres valores ordenados: ";
+    orden = orden + ra;
+    orden = orden + " ";
+    orden = orden + rb;
+    orden = orden + " ";
+    orden = orden + rc;
+    salida(orden);
+
+    ent cociente = 0;
+    ent resto = 0;
+    dividirpar(47, 6, cociente, resto);
+    mostrar("47 / 6, cociente               : ", cociente);
+    mostrar("47 / 6, resto                  : ", resto);
+
+    ent contador = 0;
+    incrementar(contador, 5);
+    incrementar(contador, 5);
+    incrementar(contador, 2);
+    mostrar("contador tras tres incrementos : ", contador);
+
+    texto palabra = "kiwii";
+    envolver(palabra, "*");
+    mostrar("texto envuelto                 : ", palabra);
+    texto par1 = "primero";
+    texto par2 = "segundo";
+    intercambiar(par1, par2);
+    mostrar("par1 tras intercambiar         : ", par1);
+    mostrar("par2 tras intercambiar         : ", par2);
+}
+
+>> seccion 6: estructuras
+
+vacio demoestructuras() {
+    encabezado("6. estructuras");
+    ent jug1 = nuevo Jugador();
+    jug2 = nuevo Jugador();
+    jug2.nombre = "luna";
+    jug2.vida = 60;
+    jug2.puntaje = 7;
+    filatabla("nombre", "vida", "vivo", 10);
+    linea("-", 40);
+    filatabla(jug1.nombre, jug1.vida, jug1.vivo, 10);
+    filatabla(jug2.nombre, jug2.vida, jug2.vivo, 10);
+
+    >> atributos por referencia
+    danar(jug2.vida, 80);
+    incrementar(jug1.puntaje, 15);
+    si (jug2.vida == 0) {
+        jug2.vivo = 0;
+    }
+    linea("-", 40);
+    filatabla(jug1.nombre, jug1.vida, jug1.vivo, 10);
+    filatabla(jug2.nombre, jug2.vida, jug2.vivo, 10);
+    mostrar("puntaje de jug1 : ", jug1.puntaje);
+    mostrar("puntaje de jug2 : ", jug2.puntaje);
+
+    >> estructura de coordenadas
+    ent origen = nuevo Punto();
+    ent meta = nuevo Punto();
+    meta.px = 7;
+    meta.py = 0 - 3;
+    ent dist = distancia(origen.px, origen.py, meta.px, meta.py);
+    mostrar("distancia manhattan : ", dist);
+}
+
+>> seccion 7: errores
+
+vacio demoerrores() {
+    encabezado("7. intenta y excepto");
+    texto r1 = dividirseguro(84, 4);
+    texto r2 = dividirseguro(84, 0);
+    mostrar("84 / 4 : ", r1);
+    mostrar("84 / 0 : ", r2);
+
+    >> conversion invalida
+    intenta {
+        ent malo = "abc" * "def";
+        salida("  esto no se imprime");
+    } excepto {
+        salida("  conversion invalida atrapada");
+    }
+
+    >> intenta sin excepto
+    intenta {
+        salida("  bloque intenta sin excepto");
+    }
+
+    >> bloques anidados
+    intenta {
+        intenta {
+            ent cero = 0;
+            ent boom = 1 / cero;
+        } excepto {
+            salida("  error interno atrapado");
+        }
+        salida("  el bloque externo continua");
+    } excepto {
+        salida("  este mensaje no deberia verse");
+    }
+
+    >> rompe dentro de excepto
+    para (ent turno = 1; turno <= 5; turno = turno + 1) {
+        intenta {
+            ent resto = 3 - turno;
+            ent q2 = 12 / resto;
+            mostrar("12 / resto : ", q2);
+        } excepto {
+            salida("  division por cero en el turno 3, se rompe el ciclo");
+            rompe;
+        }
+    }
+}
+
+>> seccion 8: funciones nativas
+
+vacio demonativas() {
+    encabezado("8. funciones nativas");
+    texto palabra = "kiwii";
+    ent tam = largo(palabra);
+    texto tercera = letraen(palabra, 2);
+    ent codigo = codigoascii(tercera);
+    texto fuera = letraen(palabra, 9);
+    mostrar("largo de la palabra       : ", tam);
+    mostrar("letra en la posicion 2    : ", tercera);
+    mostrar("codigo ascii de esa letra : ", codigo);
+    enmarcar("letra fuera de rango      : ", fuera);
+
+    >> contar vocales con letraen
+    texto frase = "programacion en kiwii";
+    ent cantidad = largo(frase);
+    ent vocales = 0;
+    para (ent idx = 0; idx < cantidad; idx = idx + 1) {
+        texto ch = letraen(frase, idx);
+        si (ch == "a") { vocales = vocales + 1; }
+        si (ch == "e") { vocales = vocales + 1; }
+        si (ch == "i") { vocales = vocales + 1; }
+        si (ch == "o") { vocales = vocales + 1; }
+        si (ch == "u") { vocales = vocales + 1; }
+    }
+    mostrar("vocales en la frase       : ", vocales);
+
+    >> leerarchivo
+    texto fuente = leerarchivo("miniprograma.kiw");
+    ent bytes = largo(fuente);
+    si (bytes > 0) {
+        salida("  miniprograma.kiw leido correctamente");
+        texto cabecera = subcadena(fuente, 0, 32);
+        mostrar("primera linea             : ", cabecera);
+    } demas {
+        salida("  no se encontro miniprograma.kiw");
+    }
+}
+
+>> seccion 9: libreria cadenas
+
+vacio democadenas() {
+    encabezado("9. libreria cadenas");
+    deletrear("kiwi");
+    ent esp1 = esespacio(" ");
+    ent esp2 = esespacio("q");
+    ent dig1 = esdigito("7");
+    ent dig2 = esdigito("q");
+    ent let1 = esletra("q");
+    ent let2 = esletra("7");
+    mostrar("esespacio de un espacio : ", esp1);
+    mostrar("esespacio de una letra  : ", esp2);
+    mostrar("esdigito de un digito   : ", dig1);
+    mostrar("esdigito de una letra   : ", dig2);
+    mostrar("esletra de una letra    : ", let1);
+    mostrar("esletra de un digito    : ", let2);
+
+    >> busqueda y recorte
+    texto base = "lenguaje kiwii";
+    texto trozo = subcadena(base, 0, 8);
+    ent posk = buscarletra(base, "k");
+    ent posz = buscarletra(base, "z");
+    ent inicia1 = empezacon(base, "leng");
+    ent inicia2 = empezacon(base, "kiwii");
+    ent cont1 = contiene(base, "kiw");
+    ent cont2 = contiene(base, "xyz");
+    mostrar("subcadena de 0 a 8      : ", trozo);
+    mostrar("buscarletra de k        : ", posk);
+    mostrar("buscarletra de z        : ", posz);
+    mostrar("empezacon leng          : ", inicia1);
+    mostrar("empezacon kiwii         : ", inicia2);
+    mostrar("contiene kiw            : ", cont1);
+    mostrar("contiene xyz            : ", cont2);
+
+    >> transformacion
+    texto cambiado = reemplazar(base, " ", "-");
+    texto reves = invertir("kiwii");
+    texto sucio = "   espacios sobran   ";
+    texto limpio = limpiar(sucio);
+    mostrar("reemplazar espacios     : ", cambiado);
+    mostrar("invertir kiwii          : ", reves);
+    enmarcar("limpiar                 : ", limpio);
+}
+
+>> seccion 10: libreria matematica
+
+vacio demomatematica() {
+    encabezado("10. libreria matematica");
+    ent negado = 0 - 15;
+    ent absoluto = abs(negado);
+    ent residuo = mod(47, 6);
+    ent potencia = pot(2, 10);
+    ent cubo = pot(3, 3);
+    ent mayor = max(18, 33);
+    ent menor = min(18, 33);
+    mostrar("abs de -15     : ", absoluto);
+    mostrar("mod de 47 y 6  : ", residuo);
+    mostrar("pot de 2 y 10  : ", potencia);
+    mostrar("pot de 3 y 3   : ", cubo);
+    mostrar("max de 18 y 33 : ", mayor);
+    mostrar("min de 18 y 33 : ", menor);
+}
+
+>> seccion 11: listas
+
+vacio demolistas() {
+    encabezado("11. listas dinamicas");
+    ent frutas = nuevo Lista();
+    agregar(frutas.datos, frutas.total, "manzana");
+    agregar(frutas.datos, frutas.total, "pera");
+    agregar(frutas.datos, frutas.total, "uva");
+    agregar(frutas.datos, frutas.total, "mango");
+    mostrar("elementos : ", frutas.total);
+    mostrar("datos     : ", frutas.datos);
+    mostrarlista(frutas.datos, frutas.total);
+    texto segunda = obtener(frutas.datos, 1);
+    texto ultima = obtener(frutas.datos, 3);
+    texto ausente = obtener(frutas.datos, 9);
+    mostrar("indice 1 : ", segunda);
+    mostrar("indice 3 : ", ultima);
+    enmarcar("indice 9 : ", ausente);
+
+    >> recorrido con para
+    texto resumen = "  recorrido:";
+    para (ent idx = 0; idx < frutas.total; idx = idx + 1) {
+        texto fruta = obtener(frutas.datos, idx);
+        ent letras = largo(fruta);
+        resumen = resumen + " ";
+        resumen = resumen + fruta;
+        resumen = resumen + "(";
+        resumen = resumen + letras;
+        resumen = resumen + ")";
+    }
+    salida(resumen);
+
+    >> lista numerica
+    ent cifras = nuevo Lista();
+    agregar(cifras.datos, cifras.total, 4);
+    agregar(cifras.datos, cifras.total, 8);
+    agregar(cifras.datos, cifras.total, 1);
+    agregar(cifras.datos, cifras.total, 6);
+    ent suma = 0;
+    para (ent pos = 0; pos < cifras.total; pos = pos + 1) {
+        texto elem = obtener(cifras.datos, pos);
+        suma = suma + elem;
+    }
+    mostrar("suma de las cifras : ", suma);
+}
+
+>> seccion 12: mapas
+
+vacio demomapas() {
+    encabezado("12. mapas clave-valor");
+    ent capitales = nuevo Mapa();
+    guardar(capitales.claves, capitales.valores, capitales.total, "peru", "lima");
+    guardar(capitales.claves, capitales.valores, capitales.total, "chile", "santiago");
+    guardar(capitales.claves, capitales.valores, capitales.total, "mexico", "ciudad de mexico");
+    mostrarmapa(capitales.claves, capitales.valores, capitales.total);
+    texto encontrada = buscar(capitales.claves, capitales.valores, capitales.total, "chile");
+    ent existe1 = existeclave(capitales.claves, capitales.total, "peru");
+    ent existe2 = existeclave(capitales.claves, capitales.total, "japon");
+    mostrar("capital de chile : ", encontrada);
+    mostrar("existe peru      : ", existe1);
+    mostrar("existe japon     : ", existe2);
+
+    >> actualizar una clave existente
+    guardar(capitales.claves, capitales.valores, capitales.total, "peru", "lima metropolitana");
+    texto nueva = buscar(capitales.claves, capitales.valores, capitales.total, "peru");
+    mostrar("peru actualizado : ", nueva);
+    mostrar("total de claves  : ", capitales.total);
+    mostrarmapa(capitales.claves, capitales.valores, capitales.total);
+
+    >> clave inexistente
+    texto ninguna = buscar(capitales.claves, capitales.valores, capitales.total, "japon");
+    enmarcar("buscar japon    : ", ninguna);
+}
+
+>> seccion 13: formato
+
+vacio demoformato() {
+    encabezado("13. libreria formato");
+    linea("*", 30);
+    linea("+-", 15);
+    texto aizq = rellenarizq("kiwii", 12);
+    texto ader = rellenarder("kiwii", 12);
+    texto acen = centrar("kiwii", 12);
+    enmarcar("rellenarizq : ", aizq);
+    enmarcar("rellenarder : ", ader);
+    enmarcar("centrar     : ", acen);
+    caja("caja con titulo", 30);
+    filatabla("col a", "col b", "col c", 8);
+    linea("-", 34);
+    filatabla("uno", "dos", "tres", 8);
+    filatabla("cuatro", "cinco", "seis", 8);
+}
+
+>> seccion 14: motor lexer y evaluador
+
+vacio demomotor() {
+    encabezado("14. motor: lexer y evaluador en kiwii");
+
+    >> clasificacion de palabras y caracteres
+    ent kw1 = espalabraclave("mientras");
+    ent kw2 = espalabraclave("contador");
+    ent sm1 = essimbolo("{");
+    ent sm2 = essimbolo("q");
+    ent an1 = esalfanum("m");
+    ent an2 = esalfanum("+");
+    mostrar("espalabraclave de mientras : ", kw1);
+    mostrar("espalabraclave de contador : ", kw2);
+    mostrar("essimbolo de una llave     : ", sm1);
+    mostrar("essimbolo de una letra     : ", sm2);
+    mostrar("esalfanum de una letra     : ", an1);
+    mostrar("esalfanum de un signo      : ", an2);
+
+    >> condiciones y operaciones del evaluador
+    ent cond1 = evaluarcondicion("3", "<", "8");
+    ent cond2 = evaluarcondicion("ok", "==", "ok");
+    ent cond3 = evaluarcondicion("5", ">=", "9");
+    texto op1 = operar("6", "*", "7");
+    texto op2 = operar("9", "-", "4");
+    texto op3 = operar("17", "%", "5");
+    mostrar("evaluarcondicion 3 < 8     : ", cond1);
+    mostrar("evaluarcondicion ok == ok  : ", cond2);
+    mostrar("evaluarcondicion 5 >= 9    : ", cond3);
+    mostrar("operar 6 * 7               : ", op1);
+    mostrar("operar 9 - 4               : ", op2);
+    mostrar("operar 17 % 5              : ", op3);
+
+    >> memoria virtual
+    ent ram = nuevo Mapa();
+    guardar(ram.claves, ram.valores, ram.total, "alfa", "7");
+    texto rv1 = resolvervalor("alfa", ram.claves, ram.valores, ram.total);
+    texto rv2 = resolvervalor("omega", ram.claves, ram.valores, ram.total);
+    mostrar("resolvervalor de alfa      : ", rv1);
+    mostrar("resolvervalor de omega     : ", rv2);
+
+    >> saltar bloques
+    ent blq = nuevo Lista();
+    agregar(blq.datos, blq.total, "{");
+    agregar(blq.datos, blq.total, "x");
+    agregar(blq.datos, blq.total, "{");
+    agregar(blq.datos, blq.total, "y");
+    agregar(blq.datos, blq.total, "}");
+    agregar(blq.datos, blq.total, "z");
+    agregar(blq.datos, blq.total, "}");
+    agregar(blq.datos, blq.total, "fin");
+    ent destino = saltarbloque(blq.datos, 1, blq.total);
+    texto tras = obtener(blq.datos, destino);
+    mostrar("saltarbloque da el indice  : ", destino);
+    mostrar("token tras el bloque       : ", tras);
+
+    >> tokenizar un programa
+    texto tipos = "";
+    texto valores = "";
+    ent cuantos = 0;
+    tokenizararchivo("miniprograma.kiw", tipos, valores, cuantos);
+    mostrar("tokens en miniprograma.kiw : ", cuantos);
+    ent vista = 10;
+    mostrartokens(tipos, valores, vista);
+
+    >> ejecutar tokens
+    ent memvirtual = nuevo Mapa();
+    salida("  salida de ejecutartokens:");
+    ejecutartokens(tipos, valores, cuantos, memvirtual.claves, memvirtual.valores, memvirtual.total);
+    salida("  memoria virtual resultante:");
+    mostrarmapa(memvirtual.claves, memvirtual.valores, memvirtual.total);
+
+    >> correr un archivo completo
+    salida("  salida de correrarchivo:");
+    correrarchivo("miniprograma.kiw");
+}
+
+>> seccion 15: entrada
+
+vacio demoentrada() {
+    encabezado("15. entrada del usuario");
+    salida("  escribe tu nombre y pulsa enter (enter solo para omitir):");
+    texto visitante = "";
+    entrada(visitante);
+    si (visitante == "") {
+        visitante = "invitado";
+    }
+    texto bienvenida = saludar(visitante);
+    salida(bienvenida);
+    ent letras = largo(visitante);
+    mostrar("letras en tu nombre : ", letras);
+
+    salida("  escribe un digito del 1 al 9 (enter para usar 5):");
+    texto crudo = "";
+    entrada(crudo);
+    texto primero = letraen(crudo, 0);
+    ent valido = esdigito(primero);
+    ent digito = 5;
+    si (valido == 1) {
+        digito = primero;
+    }
+    ent fdigito = factorial(digito);
+    mostrar("factorial de tu digito : ", fdigito);
+}
+
+>> seccion 16: integracion
+
+vacio demointegracion() {
+    encabezado("16. integracion: inventario de tienda");
+    ent nombres = nuevo Lista();
+    ent existencias = nuevo Mapa();
+    ent precios = nuevo Mapa();
+
+    >> carga de productos
+    agregar(nombres.datos, nombres.total, "cuaderno");
+    agregar(nombres.datos, nombres.total, "lapiz");
+    agregar(nombres.datos, nombres.total, "regla");
+    agregar(nombres.datos, nombres.total, "mochila");
+    guardar(existencias.claves, existencias.valores, existencias.total, "cuaderno", 4);
+    guardar(existencias.claves, existencias.valores, existencias.total, "lapiz", 9);
+    guardar(existencias.claves, existencias.valores, existencias.total, "regla", 2);
+    guardar(existencias.claves, existencias.valores, existencias.total, "mochila", 3);
+    guardar(precios.claves, precios.valores, precios.total, "cuaderno", 3);
+    guardar(precios.claves, precios.valores, precios.total, "lapiz", 1);
+    guardar(precios.claves, precios.valores, precios.total, "regla", 5);
+    guardar(precios.claves, precios.valores, precios.total, "mochila", 8);
+
+    >> descuento sobre un precio
+    texto actual = buscar(precios.claves, precios.valores, precios.total, "mochila");
+    ent rebajado = actual;
+    rebajar(rebajado, 50);
+    guardar(precios.claves, precios.valores, precios.total, "mochila", rebajado);
+    mostrar("precio de la mochila antes  : ", actual);
+    mostrar("precio con 50% de descuento : ", rebajado);
+
+    >> reporte
+    salida("");
+    filatabla("producto", "cantidad", "subtotal", 12);
+    linea("-", 46);
+    ent granTotal = 0;
+    para (ent idx = 0; idx < nombres.total; idx = idx + 1) {
+        texto articulo = obtener(nombres.datos, idx);
+        texto unidades = buscar(existencias.claves, existencias.valores, existencias.total, articulo);
+        texto costo = buscar(precios.claves, precios.valores, precios.total, articulo);
+        ent importe = unidades * costo;
+        filatabla(articulo, unidades, importe, 12);
+        granTotal = granTotal + importe;
+    }
+    linea("-", 46);
+    mostrar("valor total del inventario  : ", granTotal);
+    dec media = promedio(granTotal, nombres.total);
+    mostrar("valor medio por producto    : ", media);
+    dec vacia = promedio(granTotal, 0);
+    mostrar("promedio con cero productos : ", vacia);
+}
+
+>> seccion 17: POO con metodos y contratos
+
+contrato Combatiente {
+    vacio atacar(&saludrival);
+    vacio curar(puntos);
+    texto ficha();
+}
+
+estructura Paladin implementa Combatiente {
+    texto alias = "artorias";
+    ent salud = 120;
+    ent fuerza = 35;
+
+    vacio atacar(&saludrival) {
+        saludrival = saludrival - este.fuerza;
+        si (saludrival < 0) {
+            saludrival = 0;
+        }
+    }
+
+    vacio curar(puntos) {
+        este.salud = este.salud + puntos;
+    }
+
+    texto ficha() {
+        texto info = este.alias + " [hp: ";
+        info = info + este.salud;
+        info = info + " | atk: ";
+        info = info + este.fuerza;
+        info = info + "]";
+        retorna info;
+    }
+}
+
+estructura Clonroto implementa Combatiente {
+    ent salud = 10;
+}
+
+vacio demopoo() {
+    encabezado("18. poo: metodos, este y contratos java");
+
+    ent heroe = nuevo Paladin();
+    texto inicial = heroe.ficha();
+    mostrar("estado inicial     : ", inicial);
+
+    >> llamada directa a metodos del objeto
+    ent vidaorco = 80;
+    heroe.atacar(vidaorco);
+    heroe.curar(25);
+
+    texto despues = heroe.ficha();
+    mostrar("tras curar +25     : ", despues);
+    mostrar("salud del orco     : ", vidaorco);
+
+    >> segundo golpe usando el metodo
+    heroe.atacar(vidaorco);
+    heroe.atacar(vidaorco);
+    mostrar("orco tras 2 golpes : ", vidaorco);
+
+    >> verificacion de contrato incumplido
+    intenta {
+        ent invalido = nuevo Clonroto();
+        salida("  esto nunca debe imprimirse");
+    } excepto {
+        salida("  contrato verificado: Clonroto rechazado por falta de metodos");
+    }
+}
+
+>> seccion 18: seguridad y sandboxing
+
+vacio desbordarpila(nivel) {
+    ent sig = nivel + 1;
+    desbordarpila(sig);
+}
+
+vacio demoseguridad() {
+    encabezado("18. seguridad y sandboxing");
+
+    >> filtro contra path traversal
+    texto escape1 = leerarchivo("../secreto.txt");
+    texto escape2 = leerarchivo("C:/Windows/win.ini");
+    texto escape3 = leerarchivo("/etc/passwd");
+    enmarcar("bloqueo ../secreto.txt   : ", escape1);
+    enmarcar("bloqueo C:/Windows       : ", escape2);
+    enmarcar("bloqueo /etc/passwd      : ", escape3);
+
+    >> proteccion contra bucle infinito
+    intenta {
+        ent contador = 0;
+        mientras (1 == 1) {
+            contador = contador + 1;
+        }
+        salida("  esto nunca debe imprimirse");
+    } excepto {
+        salida("  ataque de bucle infinito neutralizado (cwe-835)");
+    }
+
+    >> proteccion contra desbordamiento de pila
+    intenta {
+        desbordarpila(1);
+        salida("  esto nunca debe imprimirse");
+    } excepto {
+        salida("  desbordamiento de pila recursiva neutralizado (cwe-674)");
+    }
+
+    >> verificacion de modo aislado
+    texto prueba = leerarchivo("pruebas/miniprograma.kiw");
+    ent tam = largo(prueba);
+    si (tam == 0) {
+        salida("  estado sandbox : modo --aislado activo (lectura bloqueada)");
+    } demas {
+        salida("  estado sandbox : modo normal (lectura local permitida)");
+    }
+}
+
+
+>> programa principal
+
+vacio principal() {
+    caja("KIWII - DEMOSTRACION TOTAL DEL LENGUAJE", 56);
+    demotipos();
+    demooperadores();
+    democontrol();
+    demofunciones();
+    demoreferencias();
+    demoestructuras();
+    demoerrores();
+    demonativas();
+    democadenas();
+    demomatematica();
+    demolistas();
+    demomapas();
+    demoformato();
+    demomotor();
+    demoentrada();
+    demointegracion();
+    demopoo();
+    >> desbordarpila(1); >> Elimina los simbolos antes de la funcion para demostrar la proteccion de desbordamiento
+    demoseguridad();
+    salida("");
+    caja("fin de la demostracion", 56);
+    salida("  ejecuta con --debug para ver tokens, funciones y estructuras");
+}

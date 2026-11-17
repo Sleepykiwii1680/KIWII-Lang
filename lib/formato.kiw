@@ -1,0 +1,74 @@
+>> formato visual y alineacion en consola
+
+vacio linea(caracter, ancho) {
+    si (ancho > 0) {
+        texto barra = caracter * ancho;
+        salida(barra);
+    }
+}
+
+texto rellenarder(txt, ancho) {
+    ent tam = largo(txt);
+    si (tam >= ancho) {
+        retorna txt;
+    }
+    ent faltan = ancho - tam;
+    texto esp = " " * faltan;
+    texto res = txt + esp;
+    retorna res;
+}
+
+texto rellenarizq(txt, ancho) {
+    ent tam = largo(txt);
+    si (tam >= ancho) {
+        retorna txt;
+    }
+    ent faltan = ancho - tam;
+    texto esp = " " * faltan;
+    texto res = esp + txt;
+    retorna res;
+}
+
+texto centrar(txt, ancho) {
+    ent tam = largo(txt);
+    si (tam >= ancho) {
+        retorna txt;
+    }
+    ent totalesp = ancho - tam;
+    ent izq = totalesp / 2;
+    ent der = totalesp - izq;
+    texto espi = " " * izq;
+    texto espd = " " * der;
+    texto res = espi + txt;
+    res = res + espd;
+    retorna res;
+}
+
+vacio caja(titulo, ancho) {
+    ent interno = ancho - 2;
+    texto bordeh = "=" * interno;
+    texto tope = "+" + bordeh;
+    tope = tope + "+";
+
+    texto mediotxt = centrar(titulo, interno);
+    texto medio = "|" + mediotxt;
+    medio = medio + "|";
+
+    salida(tope);
+    salida(medio);
+    salida(tope);
+}
+
+vacio filatabla(col1, col2, col3, anchocol) {
+    texto c1 = rellenarder(col1, anchocol);
+    texto c2 = rellenarder(col2, anchocol);
+    texto c3 = rellenarder(col3, anchocol);
+
+    texto fila = "| " + c1;
+    fila = fila + " | ";
+    fila = fila + c2;
+    fila = fila + " | ";
+    fila = fila + c3;
+    fila = fila + " |";
+    salida(fila);
+}

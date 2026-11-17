@@ -1,0 +1,217 @@
+>> interprete y maquina virtual nativa en kiwii
+
+texto resolvervalor(tok, &clavesram, &valoresram, totalram) {
+    ent existe = existeclave(clavesram, totalram, tok);
+    si (existe == 1) {
+        texto val = buscar(clavesram, valoresram, totalram, tok);
+        retorna val;
+    }
+    retorna tok;
+}
+
+texto operar(v1, op, v2) {
+    si (op == "+") {
+        ent r = v1 + v2;
+        texto res = "" + r;
+        retorna res;
+    }
+    si (op == "-") {
+        ent r = v1 - v2;
+        texto res = "" + r;
+        retorna res;
+    }
+    si (op == "*") {
+        ent r = v1 * v2;
+        texto res = "" + r;
+        retorna res;
+    }
+    si (op == "/") {
+        ent r = v1 / v2;
+        texto res = "" + r;
+        retorna res;
+    }
+    si (op == "%") {
+        ent r = mod(v1, v2);
+        texto res = "" + r;
+        retorna res;
+    }
+    retorna v1;
+}
+
+ent evaluarcondicion(v1, op, v2) {
+    si (op == "==") {
+        si (v1 == v2) { retorna 1; }
+        retorna 0;
+    }
+    si (op == "!=") {
+        si (v1 != v2) { retorna 1; }
+        retorna 0;
+    }
+    si (op == "<") {
+        si (v1 < v2) { retorna 1; }
+        retorna 0;
+    }
+    si (op == ">") {
+        si (v1 > v2) { retorna 1; }
+        retorna 0;
+    }
+    si (op == "<=") {
+        si (v1 <= v2) { retorna 1; }
+        retorna 0;
+    }
+    si (op == ">=") {
+        si (v1 >= v2) { retorna 1; }
+        retorna 0;
+    }
+    retorna 0;
+}
+
+ent saltarbloque(valores, pos, total) {
+    ent nivel = 1;
+    ent i = pos;
+    mientras (i < total) {
+        texto v = obtener(valores, i);
+        si (v == "{") {
+            nivel = nivel + 1;
+        }
+        si (v == "}") {
+            nivel = nivel - 1;
+            si (nivel == 0) {
+                ent sig = i + 1;
+                retorna sig;
+            }
+        }
+        i = i + 1;
+    }
+    retorna i;
+}
+
+vacio ejecutartokens(tipos, valores, total, &clavesram, &valoresram, &totalram) {
+    ent pos = 0;
+    ent pasos = 0;
+    ent limite = 5000;
+
+    mientras (pos < total) {
+        pasos = pasos + 1;
+        si (pasos > limite) {
+            salida("[sandbox vm]: limite de instrucciones excedido (dos bloqueado)");
+            rompe;
+        }
+
+        texto t = obtener(tipos, pos);
+        texto v = obtener(valores, pos);
+
+        >> ignorar cabeceras y llaves de cierre
+        si (v == "principal") {
+            pos = pos + 4;
+        } demas {
+            si (v == "}") {
+                pos = pos + 1;
+            } demas {
+                si (v == "retorna") {
+                    pos = pos + 3;
+                } demas {
+                    >> 1. instruccion salida(...)
+                    si (v == "salida") {
+                        ent posarg = pos + 2;
+                        texto arg = obtener(valores, posarg);
+                        texto real = resolvervalor(arg, clavesram, valoresram, totalram);
+                        salida(real);
+                        pos = pos + 5;
+                    } demas {
+                        >> 2. declaracion de variables (ent o texto)
+                        ent esdecl = 0;
+                        si (v == "ent") { esdecl = 1; }
+                        si (v == "texto") { esdecl = 1; }
+
+                        si (esdecl == 1) {
+                            ent posnom = pos + 1;
+                            ent posizq = pos + 3;
+                            ent posop = pos + 4;
+
+                            texto nom = obtener(valores, posnom);
+                            texto tizq = obtener(valores, posizq);
+                            texto valizq = resolvervalor(tizq, clavesram, valoresram, totalram);
+                            texto posiblesim = obtener(valores, posop);
+
+                            si (posiblesim == ";") {
+                                guardar(clavesram, valoresram, totalram, nom, valizq);
+                                pos = pos + 5;
+                            } demas {
+                                ent posder = pos + 5;
+                                texto tder = obtener(valores, posder);
+                                texto valder = resolvervalor(tder, clavesram, valoresram, totalram);
+                                texto res = operar(valizq, posiblesim, valder);
+                                guardar(clavesram, valoresram, totalram, nom, res);
+                                pos = pos + 7;
+                            }
+                        } demas {
+                            >> 3. condicional si (a op b) { ... }
+                            si (v == "si") {
+                                ent p1 = pos + 2;
+                                ent pop = pos + 3;
+                                ent p2 = pos + 4;
+
+                                texto t1 = obtener(valores, p1);
+                                texto op = obtener(valores, pop);
+                                texto t2 = obtener(valores, p2);
+
+                                texto val1 = resolvervalor(t1, clavesram, valoresram, totalram);
+                                texto val2 = resolvervalor(t2, clavesram, valoresram, totalram);
+
+                                ent cumple = evaluarcondicion(val1, op, val2);
+                                ent iniciobloque = pos + 7;
+
+                                si (cumple == 1) {
+                                    pos = iniciobloque;
+                                } demas {
+                                    pos = saltarbloque(valores, iniciobloque, total);
+                                }
+                            } demas {
+                                >> 4. reasignacion de variable existente (x = ...)
+                                si (t == "IDENTIFICADOR") {
+                                    ent possig = pos + 1;
+                                    texto sig = obtener(valores, possig);
+                                    si (sig == "=") {
+                                        ent posizq = pos + 2;
+                                        ent posop = pos + 3;
+                                        texto tizq = obtener(valores, posizq);
+                                        texto valizq = resolvervalor(tizq, clavesram, valoresram, totalram);
+                                        texto posiblesim = obtener(valores, posop);
+
+                                        si (posiblesim == ";") {
+                                            guardar(clavesram, valoresram, totalram, v, valizq);
+                                            pos = pos + 4;
+                                        } demas {
+                                            ent posder = pos + 4;
+                                            texto tder = obtener(valores, posder);
+                                            texto valder = resolvervalor(tder, clavesram, valoresram, totalram);
+                                            texto res = operar(valizq, posiblesim, valder);
+                                            guardar(clavesram, valoresram, totalram, v, res);
+                                            pos = pos + 6;
+                                        }
+                                    } demas {
+                                        pos = pos + 1;
+                                    }
+                                } demas {
+                                    pos = pos + 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+vacio correrarchivo(ruta) {
+    texto tipos = "";
+    texto valores = "";
+    ent total = 0;
+
+    tokenizararchivo(ruta, tipos, valores, total);
+
+    ent ram = nuevo Mapa();
+    ejecutartokens(tipos, valores, total, ram.claves, ram.valores, ram.total);
+}

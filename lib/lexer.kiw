@@ -1,0 +1,194 @@
+>> analizador lexico nativo escrito en kiwii
+
+ent espalabraclave(p) {
+    si (p == "ent") { retorna 1; }
+    si (p == "texto") { retorna 1; }
+    si (p == "dual") { retorna 1; }
+    si (p == "dec") { retorna 1; }
+    si (p == "vacio") { retorna 1; }
+    si (p == "retorna") { retorna 1; }
+    si (p == "salida") { retorna 1; }
+    si (p == "entrada") { retorna 1; }
+    si (p == "si") { retorna 1; }
+    si (p == "sino") { retorna 1; }
+    si (p == "demas") { retorna 1; }
+    si (p == "mientras") { retorna 1; }
+    si (p == "para") { retorna 1; }
+    si (p == "rompe") { retorna 1; }
+    si (p == "salta") { retorna 1; }
+    si (p == "intenta") { retorna 1; }
+    si (p == "excepto") { retorna 1; }
+    si (p == "estructura") { retorna 1; }
+    si (p == "nuevo") { retorna 1; }
+    retorna 0;
+}
+
+ent essimbolo(c) {
+    si (c == "{") { retorna 1; }
+    si (c == "}") { retorna 1; }
+    si (c == "(") { retorna 1; }
+    si (c == ")") { retorna 1; }
+    si (c == ";") { retorna 1; }
+    si (c == "=") { retorna 1; }
+    si (c == "+") { retorna 1; }
+    si (c == "-") { retorna 1; }
+    si (c == "*") { retorna 1; }
+    si (c == "/") { retorna 1; }
+    si (c == "<") { retorna 1; }
+    si (c == ">") { retorna 1; }
+    si (c == "!") { retorna 1; }
+    si (c == ",") { retorna 1; }
+    retorna 0;
+}
+
+ent esalfanum(c) {
+    ent l = esletra(c);
+    si (l == 1) { retorna 1; }
+    ent d = esdigito(c);
+    si (d == 1) { retorna 1; }
+    si (c == ".") { retorna 1; }
+    si (c == "&") { retorna 1; }
+    si (c == "#") { retorna 1; }
+    retorna 0;
+}
+
+vacio tokenizararchivo(ruta, &tipos, &valores, &total) {
+    texto codigo = leerarchivo(ruta);
+    ent tam = largo(codigo);
+    ent i = 0;
+
+    mientras (i < tam) {
+        texto c = letraen(codigo, i);
+        ent esp = esespacio(c);
+        ent cod = codigoascii(c);
+
+        si (esp == 1) {
+            i = i + 1;
+        } demas {
+            >> detectar comentarios >>
+            ent escom = 0;
+            si (c == ">") {
+                ent sig = i + 1;
+                si (sig < tam) {
+                    texto c2 = letraen(codigo, sig);
+                    si (c2 == ">") {
+                        escom = 1;
+                    }
+                }
+            }
+
+            si (escom == 1) {
+                mientras (i < tam) {
+                    texto cl = letraen(codigo, i);
+                    ent codl = codigoascii(cl);
+                    si (codl == 10) {
+                        rompe;
+                    }
+                    i = i + 1;
+                }
+            } demas {
+                >> detectar cadenas con comillas (ASCII 34)
+                si (cod == 34) {
+                    texto cad = "";
+                    i = i + 1;
+                    mientras (i < tam) {
+                        texto cc = letraen(codigo, i);
+                        ent codc = codigoascii(cc);
+                        si (codc == 34) {
+                            rompe;
+                        }
+                        cad = cad + cc;
+                        i = i + 1;
+                    }
+                    i = i + 1;
+                    ent t1 = total;
+                    ent t2 = total;
+                    agregar(tipos, t1, "CADENA");
+                    agregar(valores, t2, cad);
+                    total = total + 1;
+                } demas {
+                    ent sim = essimbolo(c);
+                    si (sim == 1) {
+                        texto s = c;
+                        ent sig = i + 1;
+                        si (sig < tam) {
+                            texto c2 = letraen(codigo, sig);
+                            si (c2 == "=") {
+                                si (c == "=") { s = "=="; i = i + 1; }
+                                si (c == "!") { s = "!="; i = i + 1; }
+                                si (c == "<") { s = "<="; i = i + 1; }
+                                si (c == ">") { s = ">="; i = i + 1; }
+                            }
+                        }
+                        i = i + 1;
+                        ent t1 = total;
+                        ent t2 = total;
+                        agregar(tipos, t1, "SIMBOLO");
+                        agregar(valores, t2, s);
+                        total = total + 1;
+                    } demas {
+                        ent dig = esdigito(c);
+                        si (dig == 1) {
+                            texto num = "";
+                            mientras (i < tam) {
+                                texto cn = letraen(codigo, i);
+                                ent dn = esdigito(cn);
+                                si (dn == 0) {
+                                    rompe;
+                                }
+                                num = num + cn;
+                                i = i + 1;
+                            }
+                            ent t1 = total;
+                            ent t2 = total;
+                            agregar(tipos, t1, "NUMERO");
+                            agregar(valores, t2, num);
+                            total = total + 1;
+                        } demas {
+                            ent alfa = esalfanum(c);
+                            si (alfa == 1) {
+                                texto pal = "";
+                                mientras (i < tam) {
+                                    texto cp = letraen(codigo, i);
+                                    ent ap = esalfanum(cp);
+                                    si (ap == 0) {
+                                        rompe;
+                                    }
+                                    pal = pal + cp;
+                                    i = i + 1;
+                                }
+                                texto tipop = "IDENTIFICADOR";
+                                ent eskw = espalabraclave(pal);
+                                si (eskw == 1) {
+                                    tipop = "PALABRACLAVE";
+                                }
+                                si (pal == "#incluir") {
+                                    tipop = "DIRECTIVA";
+                                }
+                                ent t1 = total;
+                                ent t2 = total;
+                                agregar(tipos, t1, tipop);
+                                agregar(valores, t2, pal);
+                                total = total + 1;
+                            } demas {
+                                i = i + 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+vacio mostrartokens(tipos, valores, total) {
+    filatabla("INDICE", "TIPO", "VALOR", 14);
+    linea("-", 52);
+    para (ent i = 0; i < total; i = i + 1) {
+        texto t = obtener(tipos, i);
+        texto v = obtener(valores, i);
+        texto idx = "" + i;
+        filatabla(idx, t, v, 14);
+    }
+    linea("-", 52);
+}
