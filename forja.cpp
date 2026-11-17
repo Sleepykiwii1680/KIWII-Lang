@@ -683,6 +683,8 @@ void ejecutar(NodoPrograma* arbol) {
 
 // PUNTO DE ENTRADA 
 
+// PUNTO DE ENTRADA 
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         cout << "KIWII Kernel v1.5 | Uso: kiwii <archivo.kiw> [--debug] [--aislado]" << endl;
@@ -709,7 +711,11 @@ int main(int argc, char* argv[]) {
         cout << " Modo aislado (Sandbox): " << (modoAislado ? "ACTIVO" : "INACTIVO") << endl;
         cout << "================ SALIDA ================" << endl;
     }
-    ejecutar(arbol);
+    try {
+        ejecutar(arbol);
+    } catch (const exception& e) {
+        cerr << "[Aborto Seguro Kernel]: " << e.what() << endl;
+    }
     if (modoDebug) {
         cout << "=================================================" << endl;
     }

@@ -976,7 +976,7 @@ vacio principal() {
     demomotor();
     demoentrada();
     demointegracion();
-    >> desbordarpila(); >> Elimina los simbolos antes de la funcion para demostrar la proteccion de desbordamiento
+    >> desbordarpila(1); >> Elimina los simbolos antes de la funcion para demostrar la proteccion de desbordamiento
     demoseguridad();
     salida("");
     caja("fin de la demostracion", 56);
