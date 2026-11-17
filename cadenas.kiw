@@ -1,0 +1,14 @@
+>> Libreria estandar de KIWII: cadenas.kiw
+
+>> Funcion escrita en puro KIWII que recorre un texto letra por letra
+vacio deletrear(palabra) {
+    ent tam = largo(palabra);
+    para (ent i = 0; i < tam; i = i + 1) {
+        texto l = letra_en(palabra, i);
+        texto cod = codigo_ascii(l);
+        texto linea = "Letra: " + l;
+        linea = linea + " | ASCII: ";
+        linea = linea + cod;
+        salida(linea);
+    }
+}

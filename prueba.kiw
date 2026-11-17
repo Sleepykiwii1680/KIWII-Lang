@@ -1,0 +1,12 @@
+#incluir <consola>
+#incluir "cadenas.kiw"
+
+ent principal() {
+    salida("--- Iniciando... ---");
+    
+    texto secreto = "KIWI";
+    salida("Analizando palabra con con la libreria cadenas.kiw:");
+    deletrear(secreto);
+    
+    retorna 0;
+}
