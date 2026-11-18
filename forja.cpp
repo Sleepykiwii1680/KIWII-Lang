@@ -703,7 +703,7 @@ int ejecutarInstrucciones(const vector<NodoAST*>& instrucciones, map<string, str
             }
             else if (llamada->nombreFuncion == "leerarchivo") {
                 if (modoAislado) {
-                    cerr << "[Sandbox KIWII]: Lectura de archivos bloqueada en modo --aislado" << endl;
+                    cerr << "[Sandbox]: Lectura de archivos bloqueada en modo --aislado" << endl;
                     resultadoRetorno = "";
                 } else {
                     resultadoRetorno = leerArchivo(obtenerVal(0));
@@ -756,7 +756,7 @@ int ejecutarInstrucciones(const vector<NodoAST*>& instrucciones, map<string, str
             else if (programa->funciones.count(llamada->nombreFuncion)) {
                 if (++profundidadPila > LIMITE_PILA) {
                     profundidadPila--;
-                    throw runtime_error("Desbordamiento de pila bloqueado (Proteccion DoS)");
+                    throw runtime_error("Desbordamiento de pila bloqueado por seguridad (Proteccion DoS)");
                 }
                 NodoFuncion* funcObj = programa->funciones[llamada->nombreFuncion];
                 map<string, string> memoriaLocal; 
@@ -810,7 +810,7 @@ void ejecutar(NodoPrograma* arbol) {
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        cout << "KIWII Kernel v1.5 | Uso: kiwii <archivo.kiw> [--debug] [--aislado]" << endl;
+        cout << "KIWII Kernel v3.3 | Uso: kiwii <archivo.kiw> [--debug] [--aislado]" << endl;
         return 1;
     }
     string bin = argv[0];
@@ -840,7 +840,7 @@ int main(int argc, char* argv[]) {
     try {
         ejecutar(arbol);
     } catch (const exception& e) {
-        cerr << "[Aborto Seguro Kernel]: " << e.what() << endl;
+        cerr << "[ABORTO DEL KERNEL, secure]: " << e.what() << endl;
     }
     if (modoDebug) {
         cout << "=================================================" << endl;
