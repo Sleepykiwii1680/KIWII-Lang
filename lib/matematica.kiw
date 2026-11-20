@@ -36,3 +36,9 @@ ent min(a, b) {
     }
     retorna b;
 }
+
+
+ent factorial(n) {
+    si (n <= 1) { retorna 1; }
+    retorna n * factorial(n - 1);
+}

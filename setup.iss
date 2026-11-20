@@ -1,9 +1,9 @@
 [Setup]
 AppName=KIWII Language
-AppVersion=3.3
+AppVersion=4.0
 DefaultDirName={autopf}\Kiwii
 LicenseFile=LICENSE
-OutputBaseFilename=KiwiiSetup-v3.3
+OutputBaseFilename=KiwiiSetup-v4.0
 OutputDir=.
 PrivilegesRequired=lowest
 ChangesEnvironment=yes

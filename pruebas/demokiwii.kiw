@@ -944,6 +944,18 @@ estructura Paladin implementa Combatiente {
 
 estructura Clonroto implementa Combatiente {
     ent salud = 10;
+
+    vacio atacar(&saludrival) {
+        saludrival = 0;
+    }
+
+    vacio curar(puntos) {
+        este.salud = este.salud + puntos;
+    }
+
+    texto ficha() {
+        retorna "clon [hp: " + este.salud + "]";
+    }
 }
 
 vacio demopoo() {
@@ -1023,6 +1035,58 @@ vacio demoseguridad() {
     }
 }
 
+>> seccion 19: motor v4.0 (precedencia, decimales y logica)
+
+
+texto evaluarnota(nota) {
+    si (nota >= 18 y nota <= 20) {
+        retorna "sobresaliente";
+    } sino (nota >= 14) {
+        retorna "aprobado";
+    } sino si (nota >= 11) {
+        retorna "regular";
+    } demas {
+        retorna "desaprobado";
+    }
+}
+
+vacio demov4() {
+    encabezado("19. kiwii v4.0: expresiones, decimales y logica");
+
+    >> precedencia, parentesis, negativos y modulo nativo
+    ent calc = (2 + 3) * 4 - 18 / 3 + 47 % 6;
+    ent neg = -15;
+    ent pos = -neg + abs(-5);
+    mostrar("(2+3)*4 - 18/3 + 47%6 : ", calc);
+    mostrar("negativo directo      : ", neg);
+    mostrar("-neg + abs(-5)        : ", pos);
+
+    >> decimales reales y conversiones
+    dec pi = 3.14159;
+    dec radio = 4.5;
+    dec area = pi * (radio * radio);
+    dec exacto = adecimal(17) / 4;
+    mostrar("area circulo (r=4.5)  : ", area);
+    mostrar("17 / 4 decimal        : ", exacto);
+    mostrar("aentero(area)         : ", aentero(area));
+
+    >> operadores y, o, no, verdadero, falso y cortocircuito
+    dual acceso = (10 > 5 y no falso) o (1 == 2);
+    ent divisor = 0;
+    dual seguro = (divisor != 0 y (100 / divisor) > 1);
+    mostrar("logica compuesta      : ", acceso);
+    mostrar("cortocircuito seguro  : ", seguro);
+
+    >> cadenas de sino y sino si
+    mostrar("nota 19 -> ", evaluarnota(19));
+    mostrar("nota 15 -> ", evaluarnota(15));
+    mostrar("nota 12 -> ", evaluarnota(12));
+    mostrar("nota 8  -> ", evaluarnota(8));
+
+    >> recursion y llamadas anidadas en una sola linea
+    salida("  factorial en linea    : " + factorial(7));
+    salida("  concatenacion segura  : " + ("4" + "2"));
+}
 
 >> programa principal
 
@@ -1047,6 +1111,7 @@ vacio principal() {
     demopoo();
     >> desbordarpila(1); >> Elimina los simbolos antes de la funcion para demostrar la proteccion de desbordamiento
     demoseguridad();
+    demov4();
     salida("");
     caja("fin de la demostracion", 56);
     salida("  ejecuta con --debug para ver tokens, funciones y estructuras");
