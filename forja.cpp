@@ -43,9 +43,18 @@ int main(int argc, char* argv[]) {
         codigoBruto = leerArchivo(rutaArchivo);
         if (codigoBruto.empty()) return 1;
     }
+    for (char& c : rutaArchivo) if (c == '\\') c = '/';
     set<string> archivosIncluidos = {rutaArchivo};
     vector<pair<string, int>> mapaLineas;
-    string codigoFuente = preprocesar(codigoBruto, rutaArchivo, archivosIncluidos, mapaLineas);
+    string codigoFuente = "";
+    if (modoVerificar && rutaArchivo.rfind("lib/", 0) == 0) {
+        archivosIncluidos.insert("estandar.kiw");
+        string est = leerArchivo("estandar.kiw");
+        if (!est.empty()) {
+            codigoFuente += preprocesar(est, "estandar.kiw", archivosIncluidos, mapaLineas);
+        }
+    }
+    codigoFuente += preprocesar(codigoBruto, rutaArchivo, archivosIncluidos, mapaLineas);
     NodoPrograma* arbol = nullptr;
     try {
         vector<Token> tokens = tokenizar(codigoFuente, mapaLineas);

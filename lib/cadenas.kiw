@@ -157,4 +157,4 @@ texto limpiar(txt) {
 
     texto limpio = subcadena(txt, ini, fin);
     retorna limpio;
-}
+}

@@ -1,5 +1,4 @@
 >> diccionarios clave-valor
-
 estructura Mapa {
     texto claves = "";
     texto valores = "";
@@ -70,4 +69,4 @@ vacio mostrarmapa(clavesMapa, valoresMapa, totalMapa) {
         par = par + v;
         salida(par);
     }
-}
+}
