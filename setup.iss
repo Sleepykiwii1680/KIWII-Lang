@@ -21,7 +21,7 @@ Source: "estandar.kiw"; DestDir: "{app}"; Flags: ignoreversion
 Source: "motor.kiw"; DestDir: "{app}"; Flags: ignoreversion
 Source: "lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs
 Source: "pruebas\*"; DestDir: "{app}\pruebas"; Flags: ignoreversion recursesubdirs
-Source: "kiwii-lang-1.0.0.vsix"; DestDir: "{app}"; Flags: ignoreversion
+Source: "kiwii-lang-1.1.0.vsix"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Registry]
